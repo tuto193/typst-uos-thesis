@@ -1,31 +1,24 @@
-#import "languages.typ": dict
-// https://github.com/zagoli/simple-typst-thesis/blob/main/template.typ
 
 // Small fancy stuff for creating tables
-#let fancy-align(col, row) = {
-  if row == 0 { center }
-  else if col == 0 {left + horizon}
-  else {right + horizon}
+#let fance-table-align(col, row) = {
+  if row == 0 { center } else if col == 0 { left + horizon } else { right + horizon }
 }
-
-#let fancy-fill(col, row) = {
-  if row == 0 {gray}
-  else if calc.odd(row) {silver}
-  else {white}
+#let fancy-table-fill(col, row) = {
+  if row == 0 { gray } else if calc.odd(row) { silver } else { white }
 }
+#let fancy-table-stroke = 0.5pt + black
 
-#let fancy-stroke = 0.5pt + black
-
-// If you want to cite with "et. al." when there are more than 2 authors
-// use only for for form:"prose" or form:"author". Otherwise just use normal citing
+// Cite as "Author1 et. al.[XXX]" whenever there are more than two authors.
+//
+// NOTE: Only for for `form:"prose"` or `form:"author"`. Otherwise just use normal citing
 #let cite-et-al(label-string, form: "prose", supplement: "") = {
   let label-c = if type(label-string) == "string" {
     label(label-string)
-  } else {label-string}
-  if supplement != ""{
-    cite(label-c, form: form, style: "trends", supplement: [#supplement])
+  } else { label-string }
+  if supplement != "" {
+    cite(label(label-c), form: form, style: "trends", supplement: [#supplement])
   } else {
-    cite(label-c, form: form, style: "trends")
+    cite(label(label-c), form: form, style: "trends")
   }
 }
 
@@ -35,12 +28,13 @@
 #let cite-string(label-string, supplement: "", form: "", style: "ieee") = {
   let actual-form = if form != "" { form } else { "normal" }
   if supplement == "" {
-        cite(label(label-string), form: actual-form, style: style)
+    cite(label(label-string), form: actual-form, style: style)
   } else {
     cite(label(label-string), form: actual-form, style: style, supplement: supplement)
   }
 }
 
+// Build header shown on pages where a Chapter starts
 #let build-main-header(main-heading-content) = {
   [
     #align(center, smallcaps(main-heading-content))
@@ -74,30 +68,17 @@
   []
 }
 
-#let get-nice-date(lang: "en") = {
+#let get-nice-date(yaml-dict) = {
   let today = datetime.today()
-  let nice-month = dict.at(lang).at("months").at(today.month() - 1)
-  // (
-  //   "January",
-  //   "February",
-  //   "March",
-  //   "April",
-  //   "May",
-  //   "June",
-  //   "July",
-  //   "August",
-  //   "September",
-  //   "October",
-  //   "November",
-  //   "December"
-  // ).at(today.month() - 1)
+  let months = yaml-dict.months
+  let nice-month = months.at(today.month() - 1)
   [
     #nice-month #today.display("[year]")
   ]
 }
 
-// To know if the secondary heading appears after the main heading
-#let is-after(secondary-heading, main-heading) = {
+// To know if the secondary heading appears after the main heading on the same page
+#let is-secondary-heading-after-main-heading(secondary-heading, main-heading) = {
   let secHeadPos = secondary-heading.location().position()
   let mainHeadPos = main-heading.location().position()
   if (secHeadPos.at("page") > mainHeadPos.at("page")) {
@@ -109,22 +90,22 @@
   return false
 }
 
-#let print-proclamation(city, lang: "en") = {
+#let print-proclamation(city, lang) = {
   set page(header: none, numbering: none)
-  heading(dict.at(lang).at("proclamation").at("title"), numbering: none)
+  heading(lang.proclamation.title, numbering: none)
   [
-    #dict.at(lang).at("proclamation").at("contents")
+    #lang.proclamation.contents
     // I hereby confirm that I wrote this thesis independently and that I have not made use of any other resources or means than those indicated.
   ]
   v(1.0cm)
   align(right)[
     #line(length: 35%)
-    #city, #get-nice-date(lang: lang)
+    #city, #get-nice-date(lang)
   ]
   pagebreak(weak: true)
 }
 
-#let build-with-number(current-abs-page, page-counter, is-main-heading: false) = {
+#let build-footer-with-number(current-abs-page, page-counter, is-main-heading: false) = {
   let number-string = str(page-counter)
   if is-main-heading {
     [
@@ -142,69 +123,81 @@
 }
 
 #let get-footer(document-title) = {
-  locate(loc => {
+  context {
+    let loc = here()
     // Find if there is a level 1 heading on the current page
-    let next-main-heading = query(selector(heading).after(loc), loc).find(headIt => {
-     headIt.location().page() == loc.page() and headIt.level == 1
+    let next-main-heading = query(selector(heading).after(loc)).find(headIt => {
+      headIt.location().page() == loc.page() and headIt.level == 1
     })
     if (next-main-heading != none) {
-      return build-with-number(counter(page).at(loc).at(0))
+      return build-footer-with-number(counter(page).at(loc).at(0))
     }
     // Find the last previous level 1 heading -- at this point surely there's one :-)
-    let last-main-heading = query(selector(heading).before(loc), loc).filter(headIt => {
-      headIt.level == 1
-    }).last()
+    let last-main-heading = query(selector(heading).before(loc))
+      .filter(headIt => {
+        headIt.level == 1
+      })
+      .last()
     if last-main-heading.location().page() == loc.page() {
-      return build-with-number(loc.page(), counter(page).at(loc).at(0), is-main-heading: true)
+      return build-footer-with-number(loc.page(), counter(page).at(loc).at(0), is-main-heading: true)
     }
     // Find if the last level > 1 heading in previous pages
-    let previous-secondary-heading-array = query(selector(heading).before(loc), loc).filter(headIt => {
+    let previous-secondary-heading-array = query(selector(heading).before(loc)).filter(headIt => {
       headIt.level > 1
     })
     let last-secondary-heading = if (previous-secondary-heading-array.len() != 0) {
       previous-secondary-heading-array.last()
-    } else {none}
+    } else { none }
     // Find if the last secondary heading exists and if it's after the last main heading
-    if (last-secondary-heading != none and is-after(last-secondary-heading, last-main-heading)) {
+    if (
+      last-secondary-heading != none
+        and is-secondary-heading-after-main-heading(last-secondary-heading, last-main-heading)
+    ) {
       return build-footer-with-title(document-title)
     }
     return build-footer-with-title(document-title)
-  })
+  }
 }
 
 #let get-header(double-sided) = {
   // counter(footnote).update(0)
-  locate(loc => {
+  context {
+    let loc = here()
     // Find if there is a level 1 heading on the current page
-    let next-main-heading = query(selector(heading).after(loc), loc).find(headIt => {
-     headIt.location().page() == loc.page() and headIt.level == 1
+    let next-main-heading = query(selector(heading).after(loc)).find(headIt => {
+      headIt.location().page() == loc.page() and headIt.level == 1
     })
     if (next-main-heading != none) {
       return build-empty()
     }
     // Find the last previous level 1 heading -- at this point surely there's one :-)
-    let last-main-heading = query(selector(heading).before(loc), loc).filter(headIt => {
-      headIt.level == 1
-    }).last()
-    let lastMainIndex = counter(heading).at(loc).at(0)
+    let last-main-heading = query(selector(heading).before(loc))
+      .filter(headIt => {
+        headIt.level == 1
+      })
+      .last()
+    let lastMainIndex = counter(heading).get().at(0)
     // Find if the last level > 1 heading in previous pages
-    let previous-secondary-heading-array = query(selector(heading).before(loc), loc).filter(headIt => {
+    let previous-secondary-heading-array = query(selector(heading).before(loc)).filter(headIt => {
       headIt.level > 1
     })
     let last-secondary-heading = if (previous-secondary-heading-array.len() != 0) {
       previous-secondary-heading-array.last()
-    } else {none}
+    } else { none }
     // Find if the last secondary heading exists and if it's after the last main heading
-    if (last-secondary-heading != none and is-after(last-secondary-heading, last-main-heading)) {
+    if (
+      last-secondary-heading != none
+        and is-secondary-heading-after-main-heading(last-secondary-heading, last-main-heading)
+    ) {
       let headingText = if (calc.even(loc.page())) {
         str(lastMainIndex) + ". " + last-main-heading.body
       } else {
-        str(lastMainIndex)+"." +str(last-secondary-heading.level) + ". " + last-secondary-heading.body
+        str(lastMainIndex) + "." + str(last-secondary-heading.level) + ". " + last-secondary-heading.body
       }
       // Always make the absolute-page an odd number, if there not printing
       // double-sided, so the page-number always comes on the right side
-      let absolute-page = if not double-sided {1} else {loc.page()}
-      return build-secondary-header(headingText, absolute-page, counter(page).at(loc).at(0))
+      let absolute-page = if not double-sided { 1 } else { loc.page() }
+      return build-secondary-header(headingText, absolute-page, counter(page).get().at(0))
     }
     let heading-title = str(last-main-heading.body.text)
     let headingText = if heading-title.find("Bibliography") != none {
@@ -214,13 +207,12 @@
     }
     // Always make the absolute-page an odd number, if there not printing
     // double-sided, so the page-number always comes on the right side
-    let absolute-page = if not double-sided {1} else {loc.page()}
-    return build-secondary-header(headingText, absolute-page, counter(page).at(loc).at(0))
-  })
+    let absolute-page = if not double-sided { 1 } else { loc.page() }
+    return build-secondary-header(headingText, absolute-page, counter(page).get().at(0))
+  }
 }
 
-#let invisible-heading(level: 1, numbering: none, supplement: auto,
-    outlined: true, content) = {
+#let invisible-heading(level: 1, numbering: none, supplement: auto, outlined: true, content) = {
   // show heading.where(level: level): set text(size: 0em, color: red)
   show heading.where(level: level): it => block[]
   text(size: 0pt)[
@@ -238,13 +230,14 @@
     #heading(
       outlined: outlined,
       numbering: none,
-      content
+      content,
       // text(0.85em,content),
     )
     #v(5mm)
   ]
 }
 
+/// For dictionary stuff just below. Might change in the future
 #let GLS_PREFIX = "gls-auto-"
 
 #let print-glossary(glossaries, name, bold: true) = {
@@ -266,6 +259,7 @@
 #let GLOSSARIES = state("glossaries", (:))
 #let PRINTED_GLOSSARIES = state("printed_glossaries", ())
 
+// Use `name` that should/would appear in the Glossary. (See "glossaries.typ")
 #let gls(name) = {
   let contents = locate(loc => {
     let glossaries = GLOSSARIES.at(loc)
@@ -281,8 +275,7 @@
         break
       }
     }
-  }
-  )
+  })
   contents
   PRINTED_GLOSSARIES.update(curr => {
     if name not in curr {
@@ -312,11 +305,11 @@
   bibliography-style: "ieee",
   first-supervisor: "Prof. 1",
   second-supervisor: "Person 2",
-  glossaries: (abbreviation: (:),),
-  double-sided : true,
-  body
+  glossaries: (abbreviation: (:)),
+  double-sided: true,
+  body,
 ) = {
-  let margin = (bottom: 1.135in+0.4in, top: 1.125in+0.4in)
+  let margin = (bottom: 1.135in + 0.4in, top: 1.125in + 0.4in)
   if double-sided {
     margin.insert("outside", 1.0in)
     margin.insert("inside", 1.3in)
@@ -339,10 +332,12 @@
   set text(
     size: 12pt,
     // font: "Times_New_Roman",
-    font: "Linux Libertine",
+    font: "Libertinus Serif",
     // stretch: 120%,
-    lang: "en"
+    lang: "en",
   )
+  let lang = yaml("languages/" + lang + ".yaml")
+
   // Make sure that Figures' numbers are bold
   // show figure.caption: it => [
   //   #strong(it.supplement) #strong(it.counter.display(it.numbering)) : #it.body
@@ -359,31 +354,8 @@
     "outlined",
   )
   show figure.caption: emph
-  // Maximum show rule depth exceeded. Do something else for the moment
-  // show figure: it => {
-  //   let args = for p in fig-params {
-  //     let it = it.fields()
-  //     if p in it { ((p): it.at(p)) }
-  //   }
-  //   let body = it.body
-  //   if it.kind == image {
-  //     args.supplement = dict.at(lang).at("fig")
-  //   } else if it.kind == table {
-  //     args.supplement = dict.at(land).at("tab")
-  //   }
-
-  //   figure(..args, body)
-  // }
-  // show figure.where(kind: image): set figure(supplement: dict.at(lang).at("fig"))
-  // show figure.where(kind: table): set figure(supplement: dict.at(lang).at("tab"))
-  // show figure.where(kind: image): set figure(supplement: dict.at(lang).at("fig"))
-  // show figure.caption: it => {
-  //   [#it.supplement #it.counter #it.numbering #text(style: "normal", it.body)]
-  // }
-  // show.fi
   show math.equation: set text(weight: 400)
-  // set math.equation(numbering: "(1.1)") // Currently not directly supported by typst
-  set math.equation(numbering: "(1)")
+  set math.equation(numbering: "(1.1)")
   set heading(numbering: "1.1")
   set par(justify: true)
 
@@ -394,9 +366,9 @@
   show outline.entry.where(level: 1): it => {
     v(16pt, weak: true)
     strong(it)
-    set outline(
-      fill: none
-    )
+    // set outline(
+    //   fill: none,
+    // )
   }
 
   show outline.entry.where(level: 2): it => {
@@ -412,7 +384,7 @@
         // Override equation references.
         link(el.label)[#numbering(
           el.numbering,
-          ..counter(eq).at(el.location())
+          ..counter(eq).at(el.location()),
         )]
       } else if el.func() == hd {
         // headings
@@ -429,32 +401,11 @@
       }
     } else {
       // Other references as usual.
-      // text(fill: gray.darken(60%))[#it]
       it
     }
   }
   show cite: set text(fill: gray.darken(60%))
-  // Make Raw/Code text nicely themed
-  // set raw(theme: "../tmThemes/gruvbox.tmTheme")
-  // set raw(syntaxes: "../tmThemes/GDScript.sublime-syntax")
-  // show raw.where(lang: "gdscript"): it =>{
-    // it.syntaxes: 
-    // syntaxes = "../tmThemes/GDScript.sublime-syntax"
-  // } 
-  // Make a nice fill for block-code
-  show raw.where(block: true): block.with(
-    // fill: rgb("#1d2433"),
-    fill: luma(220),
-    inset: 8pt,
-    radius: 5pt,
-    // text(fill: rgb("#a2aabc"), it)
-  )
-  show raw.where(block: false): box.with(
-    fill: luma(235),
-    inset: (x: 1pt, y: 0pt),
-    outset: (y: 3pt),
-    radius: 2pt,
-  )
+
 
   // Title page.
   // v(0.25fr)
@@ -472,7 +423,7 @@
   v(0.20fr)
 
   align(center)[
-    #text(style: "italic")[#dict.at(lang).at("degree").at(degree)]
+    #text(style: "italic")[#lang.degree.#degree]
   ]
   align(center)[
     #text(1.8em, weight: 700, title)
@@ -481,16 +432,19 @@
   // Author information.
   align(center)[
     #text(size: 14pt)[#author] \
-      #if registration-number != "" [#registration-number \ ]
+    #if registration-number != "" [#registration-number \ ]
 
     #v(2cm)
     // #datetime.today().display("[month] [year]")
-    #get-nice-date(lang: lang)
+    #get-nice-date(lang)
 
     #v(2cm)
-    #table(columns: 2, stroke: none, align: left,
-    [#dict.at(lang).at("supervisors").at("first"):], [#first-supervisor],
-    [#dict.at(lang).at("supervisors").at("second"):], [#second-supervisor],
+    #table(
+      columns: 2,
+      stroke: none,
+      align: left,
+      [#lang.supervisors.first:], [#first-supervisor],
+      [#lang.supervisors.second:], [#second-supervisor],
     )
 
   ]
@@ -506,46 +460,48 @@
   }
 
   show heading.where(level: 1): it => [
-      #set text(size: 24pt)
-      #v(1.5in)
-      #par(first-line-indent: 0pt)[#it.body]
-      #v(1.5cm)
+    #set text(size: 24pt)
+    #v(1.5in)
+    #par(first-line-indent: 0pt)[#it.body]
+    #v(1.5cm)
   ]
 
 
   // Table of contents.
-  heading(dict.at(lang).at("index"), numbering: none, outlined: false)
+  heading(lang.index, numbering: none, outlined: false)
   outline(
     title: none,
-    depth: 3, indent: true,
-    fill: repeat("  .  ")
+    depth: 3,
+    indent: auto,
   )
   pagebreak()
-///*
-/// Lists...
+  ///*
+  /// Lists...
   set page(numbering: "i", number-align: center)
-  heading(dict.at(lang).at("lists").at("figures"), numbering: none)
+  heading(lang.lists.figures, numbering: none)
   outline(
     title: none,
-    depth: 3, indent: true,
+    depth: 3,
+    indent: auto,
     target: figure.where(kind: image),
   )
   pagebreak()
 
-  heading(dict.at(lang).at("lists").at("tables"), numbering: none)
+  heading(lang.lists.tables, numbering: none)
   outline(
     title: none,
-    depth: 3, indent: true,
-    target: figure.where(kind: table)
+    depth: 3,
+    indent: auto,
+    target: figure.where(kind: table),
   )
   pagebreak()
-//*/
+  //*/
   GLOSSARIES.update(glossaries)
 
   heading(
     outlined: true,
     numbering: none,
-    text(dict.at(lang).at("lists").at("glossary")),
+    text(lang.lists.glossary),
   )
   print-glossary(glossaries, "abbreviation", bold: true)
   pagebreak()
@@ -564,20 +520,20 @@
   counter(page).update(1)
 
   // set gls(glossaries: glossaries)
-  show heading: set heading(supplement: [#dict.at(lang).at("sections").at("other")])
-  show heading.where(level: 1): set heading(supplement: [#dict.at(lang).at("sections").at("main")])
+  show heading: set heading(supplement: [#lang.sections.other])
+  show heading.where(level: 1): set heading(supplement: [#lang.sections.main])
   show heading.where(level: 1): it => [
-      // #pagebreak(weak: true)
-      #set text(size: 24pt)
-      #v(1.5in)
-      #block[
-        #if it.numbering != none [
-          #dict.at(lang).at("sections").at("main") #counter(heading).display()
-          #v(0.5cm)
-        ]
-        #par(first-line-indent: 0pt)[#it.body]
+    // #pagebreak(weak: true)
+    #set text(size: 24pt)
+    #v(1.5in)
+    #block[
+      #if it.numbering != none [
+        #lang.sections.main #counter(heading).display()
+        #v(0.5cm)
       ]
-      #v(1.5cm, weak: true)
+      #par(first-line-indent: 0pt)[#it.body]
+    ]
+    #v(1.5cm, weak: true)
   ]
   // show heading: it => [
   //   #if it.level > 1 [
@@ -597,23 +553,23 @@
   ]
   show heading.where(level: 2): set text(size: 18pt)
   show heading.where(level: 3): set text(size: 14pt)
-///
+  ///
   set page(numbering: "1", number-align: center)
   // set footnote(numbering: "*")
 
   body
 
-// Bibliography
+  // Bibliography
   pagebreak(weak: true)
   bibliography(
     bibliography-path,
-    title: [#dict.at(lang).at("bib")],
+    title: [#lang.bibliography],
     // style: "american-physics-society"
     style: bibliography-style,
     // style: "thieme"
   )
   pagebreak(weak: true)
 
-// Proclamation
-  print-proclamation(city, lang: lang)
+  // Proclamation
+  print-proclamation(city, lang)
 }

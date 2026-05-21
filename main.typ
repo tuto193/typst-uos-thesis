@@ -1,10 +1,8 @@
-#import "template.typ": project, gls, cite-et-al, cite-string, fancy-align, fancy-fill, fancy-stroke
+#import "@preview/codly:1.3.0": *
+#import "@preview/codly-languages:0.1.1": *
+
+#import "template.typ": cite-et-al, cite-string, fance-table-align, fancy-table-fill, fancy-table-stroke, gls, project
 #import "glossaries.typ": GLOSSARIES
-#import "languages.typ": dict
-// If you need to mark stuff and not forget!
-// #import "@preview/big-todo:0.2.0": *
-// If you need FANCIER tables!
-// #import "@preview/tablex:0.0.7": tablex, rowspanx, colspanx, hlinex, vlinex
 
 // Make a simple separator for term lists
 #set terms(separator: [: ], tight: false)
@@ -14,55 +12,18 @@
 // #let language = "es"
 #let language = "en"
 
-#let figimage = figure.with(supplement: [#dict.at(language).at("fig")], kind: image)
-// Use this to cite code in a cool way
-#let code(body, caption: "", label: <code>, placement: auto) = {
-    let content = ()
-    let i = 1
-    for item in body.children {
-        if item.func() == raw {
-            for line in item.text.split("\n") {
-                content.push(text(str(i), font: "Fira Code", fill: luma(180), size: 10pt))
-                content.push(raw(line, lang: item.lang))
-                i += 1
-            }
-        }
-    }
-    let bg-fill-1 = luma(230)
-    let bg-fill-2 = luma(240)
-    [
-        #figimage(
-          block(
-            // stroke: 1pt + gray, 
-            inset: 0pt, 
-            // fill: rgb(99%, 99%, 99%), 
-            fill: bg-fill-1,
-            // width: 0.8fr,
-            radius: 10pt,
-          )[
-            #set align(left)
-            #table(
-              columns: (auto, 1fr),
-              inset: 4pt,
-              stroke: none,
-              fill: (_, row) => {
-                if calc.odd(row) {
-                  bg-fill-2
-                } else {
-                  bg-fill-1
-                }
-              },
-              align: horizon,
-              ..content
-            ) 
-          ],
-          caption: [#caption],
-          placement: placement,
-        )
-        #label
-    ]
-}
-#let figtable = figure.with(supplement: [#dict.at(language).at("tab")], kind: table)
+
+////////////////////////////////////////////
+///// HELPER FUNCTIONS
+/// FIGURES
+
+#let lang = yaml("languages/" + language + ".yaml")
+/// Create a figure(kind: image)
+#let figimage = figure.with(supplement: [#lang supplements.figure], kind: image)
+/// Create a figure(kind: table)
+#let figtable = figure.with(supplement: [#lang.supplements.table], kind: table)
+// Create a code block
+#let figcode = figure.with(supplement: [#lang.supplements.code], kind: raw)
 
 
 #show: project.with(
@@ -82,8 +43,10 @@
   //   I am the abstract text.
   // ],
   glossaries: GLOSSARIES,
-  double-sided: false,  // affects the placements of page numbers
+  double-sided: false, // affects the placements of page numbers
 )
+/// Initialize codly: code will now be shown more awesomely
+#show: codly-init.with()
 
 = Introduction
 <chap-Introduction>
@@ -100,31 +63,31 @@ Here we are in @chap-Introduction.
 == Motivation
 <sec-Motivation>
 We are in @sec-Motivation and here is a fancy table in @table-1, and we can
-do some references. Let's quote something with many authors #cite-et-al("RWS+2023GDAL", form: "prose").
+do some references. Let's quote something with many authors like #cite-et-al("RWS+2023GDAL", form: "prose").
 
 #figtable(
   table(
-    columns: 2,
-    align: fancy-align,
-    fill: fancy-fill,
-    stroke: fancy-stroke,
-    [My Left], [My Right],
-    [1], [a],
-    [2], [b],
-    [3], [c],
+    columns: 3,
+    align: fance-table-align,
+    fill: fancy-table-fill,
+    stroke: fancy-table-stroke,
+    [*Left side*], [*Middle*], [*Right side*],
+    [1], [a], [I],
+    [2], [b], [II],
+    [3], [c], [II],
   ),
   caption: "Not so fancy caption",
 ) <table-1>
 
 There is also some code in @code-1.
-#code(
+#figure(
   [
-  ```python
-my_list: list = [1, 3, 4, 9]
-print(my_list)
-  ```
+    ```py
+    def my_random_function() -> None:
+        my_list: list = [1, 3, 4, 9]
+        print(my_list)
+    ```
   ],
-  caption: [Some code],
-  label: <code-1>
-)
-
+  supplement: [Code Block],
+  caption: [Some python code, I think...],
+) <code-1>

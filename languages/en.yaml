@@ -1,0 +1,37 @@
+degree:
+  bachelor: Bachelor's thesis
+  master: Master's thesis
+index: Contents
+supervisors:
+  first: First supervisor
+  second: Second supervisor
+sections:
+  main: Chapter
+  other: Section
+lists:
+  figures: List of Figures
+  tables: List of Tables
+  glossary: List of Abbreviations
+bibliography: Bibliography
+supplements:
+  figure: Figure
+  table: Table
+  code: Code Block
+months:
+  - January
+  - February
+  - March
+  - April
+  - May
+  - June
+  - July
+  - August
+  - September
+  - October
+  - November
+  - December
+proclamation:
+  title: Proclamation
+  contents:
+    - I hereby confirm that I wrote this thesis independently and that I
+      have not made use of any other resources or means than those indicated.
