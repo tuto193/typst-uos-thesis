@@ -12,7 +12,7 @@ The overall template is outlined in `template.typ`, which includes some other qu
 
 Abbreviations you want included in the thesis can be edited in `glossaries.typ`. Here should be everything you _want_ to show in the final document.
 
-Languages supported are under `languages.typ`. Just copy the main `english` dict, and fill the needed stuff with your wanted language.
+Languages supported are under `languages/`. Just copy any of the files (`<lang>.yaml`), and fill the needed stuff with your wanted language.
 
 ## Main features
 - **Multi-lingual!**:

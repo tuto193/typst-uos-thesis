@@ -1,22 +1,23 @@
-degree:
+work-type:
+  seminar: Seminario
   bachelor: Tésis de bachelor
   master: Tésis de maestría
 index: Contenidos
 supervisors:
-  first: "Primer supervisor"
-  second: "Segundo supervisor"
+  first: Primer supervisor
+  second: Segundo supervisor
 sections:
-  main: "Capítulo"
-  other: "Sección"
+  main: Capítulo
+  other: Sección
 lists:
-  figures: "Lista de Ilustraciones"
-  tables: "Lista de Tablas"
-  glossary: "Lista de Abreviaturas"
-bibliography: "Bibliografía"
+  figure: Lista de Ilustraciones
+  tables: Lista de Tablas
+  glossary: Lista de Abreviaturas
+bibliography: Bibliografía
 supplements:
-  figure: "Ilustración"
-  table: "Tabla"
-  code: "Bloque de Código"
+  figure: Ilustración
+  table: Tabla
+  code: Bloque de Código
 months:
   - Enero
   - Febrero
@@ -31,8 +32,7 @@ months:
   - Noviembre
   - Deciembre
 proclamation:
-  title: "Declaración"
-  contents:
-    - Por la presente, confirmo que he escrito esta tesis de manera
-      independiente y que no he utilizado ningún otro recurso o medio que
-      no esté indicado.
+  title: Declaración
+  contents: Por la presente, confirmo que he escrito esta tesis de manera
+    independiente y que no he utilizado ningún otro recurso o medio que
+    no esté indicado.

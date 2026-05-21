@@ -95,7 +95,6 @@
   heading(lang.proclamation.title, numbering: none)
   [
     #lang.proclamation.contents
-    // I hereby confirm that I wrote this thesis independently and that I have not made use of any other resources or means than those indicated.
   ]
   v(1.0cm)
   align(right)[
@@ -292,7 +291,7 @@
 
 #let project(
   title: "",
-  degree: "bachelor",
+  work-type: "bachelor",
   lang: "en",
   abstract: "",
   author: "",
@@ -423,7 +422,7 @@
   v(0.20fr)
 
   align(center)[
-    #text(style: "italic")[#lang.degree.#degree]
+    #text(style: "italic")[#lang.work-type.at(work-type)]
   ]
   align(center)[
     #text(1.8em, weight: 700, title)
@@ -478,7 +477,7 @@
   ///*
   /// Lists...
   set page(numbering: "i", number-align: center)
-  heading(lang.lists.figures, numbering: none)
+  heading(lang.lists.figure, numbering: none)
   outline(
     title: none,
     depth: 3,

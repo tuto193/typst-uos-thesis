@@ -1,4 +1,5 @@
-degree:
+work-type:
+  seminar: Seminar
   bachelor: Bachelor's thesis
   master: Master's thesis
 index: Contents
@@ -9,7 +10,7 @@ sections:
   main: Chapter
   other: Section
 lists:
-  figures: List of Figures
+  figure: List of Figures
   tables: List of Tables
   glossary: List of Abbreviations
 bibliography: Bibliography
@@ -32,6 +33,5 @@ months:
   - December
 proclamation:
   title: Proclamation
-  contents:
-    - I hereby confirm that I wrote this thesis independently and that I
-      have not made use of any other resources or means than those indicated.
+  contents: I hereby confirm that I wrote this thesis independently and that I
+    have not made use of any other resources or means than those indicated.

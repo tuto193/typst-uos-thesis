@@ -1,15 +1,16 @@
-degree:
+work-type:
+  seminar: Seminararbeit
   bachelor: Bachelorarbeit
   master: Masterarbeit
+index: Inhaltsverzeichnis
 supervisors:
   first: Erstgutachter
   second: Zweitgutachter
-index: Inhaltsverzeichnis
 sections:
   main: Kapitel
   other: Abschnitt
 lists:
-  figures: Abbildungsverzeichnis
+  figure: Abbildungsverzeichnis
   tables: Tabellenverzeichnis
   glossary: Abkürzungsverzeichnis
 bibliography: Quellenangaben
@@ -32,7 +33,6 @@ months:
   - Dezember
 proclamation:
   title: Eidesstattliche Erklärung
-  contents:
-    - Hiermit versichere ich, dass ich die vorliegende Arbeit selbständig
-      verfasst und keine anderen als die angegebenen Quellen und Hilfsmittel
-      benutzt sowie Zitate kenntlich gemacht habe.
+  contents: Hiermit versichere ich, dass ich die vorliegende Arbeit selbständig
+    verfasst und keine anderen als die angegebenen Quellen und Hilfsmittel
+    benutzt sowie Zitate kenntlich gemacht habe.

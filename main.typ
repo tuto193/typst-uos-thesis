@@ -10,7 +10,7 @@
 // Set the language of the document here!
 // #let language = "de"
 // #let language = "es"
-#let language = "en"
+#let language = "de"
 
 
 // Set language for translations
@@ -22,7 +22,7 @@
 /// FIGURES
 
 /// Create a figure(kind: image)
-#let figimage = figure.with(supplement: [#lang supplements.figure], kind: image)
+#let figimage = figure.with(supplement: [#lang.supplements.figure], kind: image)
 /// Create a figure(kind: table)
 #let figtable = figure.with(supplement: [#lang.supplements.table], kind: table)
 // Create a code block
@@ -33,7 +33,7 @@
 #show: project.with(
   title: "My Very Cool Title",
   lang: language,
-  degree: "master",
+  work-type: "seminar", // seminar, bachelor, master
   author: "John Doe",
   registration-number: "123456",
   institute: "Institute of Very Cool People",
